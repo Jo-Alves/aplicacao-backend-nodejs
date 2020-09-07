@@ -1,7 +1,8 @@
 ﻿var express = require('express');
 var router = express.Router();
 let pessoas = []
- const banco_Arquivo = "C:/Users/val/Desktop/bdArquivo/bancoArquivo.js";
+ // const banco_Arquivo = "C:/Users/val/Desktop/bdArquivo/bancoArquivo.js";
+ const banco_Arquivo = "bdArquivo/bancoArquivo.js";
 
 
 router.get('/', function(request, response, next) {
