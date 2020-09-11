@@ -1,87 +1,77 @@
 ﻿var express = require('express');
 var router = express.Router();
-let pessoas = []
- // const banco_Arquivo = "C:/Users/val/Desktop/bdArquivo/bancoArquivo.js";
- const banco_Arquivo = "bdArquivo/bancoArquivo.js";
-
+var Pessoa = require('../modelos/pessoa');
 
 router.get('/', function(request, response, next) {
-	let dados = { title: 'Nodejs com framerwork Express'}
-	
-	carregarBase(function read(err, data){
-		
-		if (data.length === 0) {    
-			dados['pessoas'] = [];
-			criarBase();
-		} 
-		else {
-			dados['pessoas'] = JSON.parse(data);
-		}
-		
-		// if(err)
-		// {
-			// console.log(err),
-			// dados["pessoas"] = []
-		// }
-		// else
-		// {
-			// dados["pessoas"] = JSON.parse(data)
-		// }
-  
-		response.render('index', dados);
-	})
+  Pessoa.todos(function(pessoas) {
+	 if(!pessoas){
+		Pessoa.criarBase()
+		pessoas = []
+	}
+    response.render('index', { 
+      title: 'Node.js com framework express',
+      pessoas: pessoas
+    });
+  });
+});
+
+router.get('/alterar', function(request, response, next) {
+  Pessoa.buscar(request.query.cpf, function(pessoa) {
+    if (pessoa == null) { 
+      console.log("Pessoa não encontrada");
+      response.render('alterar', {'pessoa': {}})
+    }
+    else{
+      response.render('alterar', {'pessoa': pessoa})
+    }
+  });
+});
+
+router.post('/alterar-pessoa', function(request, response, next) {
+  var pessoa = new Pessoa();
+
+  pessoa.cpf        = request.body.cpf;
+  pessoa.nome       = request.body.nome;
+  pessoa.sobrenome  = request.body.sobrenome;
+  pessoa.telefone   = request.body.telefone;
+  pessoa.endereco   = request.body.endereco;
+
+  pessoa.salvar(function(){
+    response.redirect("/");
+  }, request.query.cpfAterar)
+});
+
+
+router.get('/excluir', function(request, response, next) {
+  var pessoa = new Pessoa();
+  pessoa.cpf = request.query.cpf;
+  pessoa.excluir(function(pessoas){
+    response.redirect("/");
+  })
+
+});
+
+router.get('/pesquisar', function(request, response, next) {
+  Pessoa.buscarPorNome(request.query.nome, function(pessoas) {
+    response.render('index', { 
+      title: 'Pesquisando em arquivos', 
+      pessoas: pessoas
+    });
+  });
 });
 
 router.post('/cadastrar-pessoa', function(request, response, next) {
-	
-	carregarBase(function read(err, data){
-		
-		if(err)
-		{
-			console.log(err);
-			return;
-		}
-		
-		pessoas = JSON.parse(data)
-	
-		let nome = request.body.nome;
-		pessoa = {
-			nome: request.body.nome,
-			sobrenome: request.body.sobrenome,
-			cpf: request.body.cpf,
-			telefone: request.body.telefone,
-			endereco: request.body.endereco
-		}
+  var pessoa = new Pessoa();
 
-		salvarBase(pessoa)
-	
-		response.render('index', {title: 'cadastrar Pessoa', pessoas});
-	})
-});
+  pessoa.cpf        = request.body.cpf;
+  pessoa.nome       = request.body.nome;
+  pessoa.sobrenome  = request.body.sobrenome;
+  pessoa.telefone   = request.body.telefone;
+  pessoa.endereco   = request.body.endereco;
 
-// funçõe auxiliares para arquivos
-var carregarBase = calback => {
-	var fs = require("fs")
-	fs.readFile(banco_Arquivo, calback)
-}
-
-var salvarBase = pessoa => {
-	pessoas.push(pessoa)
-	var fs = require("fs")
-	fs.writeFile(banco_Arquivo, JSON.stringify(pessoas), err => {
-		if(err){
-			console.log("the file was saved!")
-		}
-	})
-}
-
-const criarBase = function () {
-  const fs = require('fs');
-  fs.writeFile(banco_Arquivo, '[]', function (error) {
-    if (error) {
-      console.log(error, "");
-    }
+  pessoa.salvar(function(){
+    response.redirect("/");
   });
-};
+});
 
 module.exports = router;
