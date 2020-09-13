@@ -4,10 +4,10 @@ var Pessoa = require('../modelos/pessoa');
 
 router.get('/', function(request, response, next) {
   Pessoa.todos(function(pessoas) {
-	 if(!pessoas){
+	 // if(!pessoas){
 		// Pessoa.criarBase()
-		pessoas = []
-	}
+		// pessoas = []
+	// }
     response.render('index', { 
       title: 'Node.js com framework express',
       pessoas: pessoas
@@ -58,6 +58,55 @@ router.get('/pesquisar', function(request, response, next) {
       pessoas: pessoas
     });
   });
+});
+
+router.get('/estados.json', function(request, response, next) {
+    response.send([
+		{ "MG": "Minas Gerais" },
+		{ "RJ": "Rio de Janeiro" },
+		{ "SP": "São Paulo" }
+    ]);
+});
+
+router.get('/cidades.json', function(request, response, next) {
+	let cidades_estados = [
+		{ "MG": [
+			"Belo Horizonte",
+			"Curvelo",
+			"Felício dos Santos",
+			"Sete Lagoas"
+		]},
+		{ "RJ": [
+			'Aparigé',
+			'Areal',
+			'Rio de Janeiro',
+			'Niteroi'
+		]},
+		{ "SP": [
+			"Alvare Florence",
+			"Aguaí",
+			"Águas da Prata",
+			"São Paulo"
+		]}
+    ]
+	
+	if(request.query.estado){		
+		var cidades = []
+		
+		cidades_estados.forEach(city => {
+			let estadoRequest = request.query.estado.toUpperCase()
+			
+			if(city[estadoRequest])
+			{
+				cidades = city[estadoRequest]
+			}
+		})
+		
+		if(cidades == []){
+			cidades = cidades_estados
+		}
+	}
+    response.send(cidades);
 });
 
 router.post('/cadastrar-pessoa', function(request, response, next) {
